@@ -163,25 +163,25 @@ Vitest has been setup in your `frontend` folder, there is one example test file 
 
 For **ui testing**, you must:
 
-Write a test for the "happy path" of an admin that is described as: 
+- Write a test for the "happy path" of an admin that is described as: 
 
-Registers successfully
+  1. Registers successfully
 
-Creates a new game successfully
+  2. Creates a new game successfully
 
-(Not required) Updates the thumbnail and name of the game successfully (yes, it will have no questions)
+  3. (Not required) Updates the thumbnail and name of the game successfully (yes, it will have no questions)
 
-Starts a game successfully
+  4. Starts a game successfully
 
-Ends a game successfully (yes, no one will have played it)
+  5. Ends a game successfully (yes, no one will have played it)
 
-Loads the results page successfully
+  6. Loads the results page successfully
 
-Logs out of the application successfully
+  7. Logs out of the application successfully
 
-Logs back into the application successfully
+  8. Logs back into the application successfully
 
-(If working in a pair) also required to write a test for another path through the program, describing the steps and the rationale behind this choice in TESTING.md
+- (🙉🙉🙉 For pairs only) also required to write a test for another path through the program, describing the steps and the rationale behind this choice in `TESTING.md`, this path **must** contain different features than the ones described in the previous path.
 
 #### Advice for Component Testing
 
