@@ -115,6 +115,147 @@ function AddQuestionModal({ onClose, onAdd }) {
       setAnswers(newAnswers);
     }
   };
+
+  return (
+    <Modal
+      title="Add New Question"
+      open={true}
+      width={700}
+      onCancel={onClose}
+      footer={[
+        <Button key="cancel" onClick={onClose}>Cancel</Button>,
+        <Button key="submit" type="primary" onClick={handleSubmit}>Add</Button>
+      ]}
+    >
+      <Form
+        form={form}
+        layout="vertical"
+        initialValues={{
+          type: 'single',
+          duration: 30,
+          points: 100,
+          mediaType: 'none'
+        }}
+      >
+        <Form.Item
+          name="type"
+          label="Question Type"
+          rules={[{ required: true, message: 'Please select question type' }]}
+        >
+          <Select onChange={handleTypeChange}>
+            <Option value="single">Single Choice</Option>
+            <Option value="multiple">Multiple Choice</Option>
+            <Option value="truefalse">True/False</Option>
+          </Select>
+        </Form.Item>
+        
+        <Form.Item
+          name="question"
+          label="Question Text"
+          rules={[{ required: true, message: 'Please enter question text' }]}
+        >
+          <TextArea rows={3} placeholder="Enter the question..." />
+        </Form.Item>
+        
+        <div style={{ display: 'flex', gap: '20px' }}>
+          <Form.Item
+            name="duration"
+            label="Time Limit (seconds)"
+            rules={[{ required: true, message: 'Please set time limit' }]}
+            style={{ width: '50%' }}
+          >
+            <InputNumber min={5} max={300} style={{ width: '100%' }} />
+          </Form.Item>
+          
+          <Form.Item
+            name="points"
+            label="Points"
+            rules={[{ required: true, message: 'Please set the score' }]}
+            style={{ width: '50%' }}
+          >
+            <InputNumber min={1} max={1000} style={{ width: '100%' }} />
+          </Form.Item>
+        </div>
+        
+        <Form.Item name="mediaType" label="Media">
+          <Radio.Group onChange={(e) => setMediaType(e.target.value)} value={mediaType}>
+            <Radio value="none">None</Radio>
+            <Radio value="url">Media URL</Radio>
+          </Radio.Group>
+        </Form.Item>
+        
+        {mediaType === 'url' && (
+          <Form.Item
+            name="mediaUrl"
+            label="Media URL"
+          >
+            <Input 
+              placeholder="Enter media URL..." 
+              onChange={(e) => setMediaUrl(e.target.value)}
+            />
+          </Form.Item>
+        )}
+        
+        <Divider>Answer Options</Divider>
+        
+        {questionType === 'truefalse' ? (
+          <div>
+            {answers.map((answer, index) => (
+              <div key={index} style={{ marginBottom: '10px', display: 'flex', alignItems: 'center' }}>
+                <Text style={{ width: '100px' }}>{answer.answer}</Text>
+                <Switch
+                  checkedChildren={<CheckOutlined />}
+                  unCheckedChildren={<CloseOutlined />}
+                  checked={answer.correct}
+                  onChange={(checked) => handleAnswerChange(index, 'correct', checked)}
+                />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div>
+            {answers.map((answer, index) => (
+              <div key={index} style={{ marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Input
+                  placeholder={`Option ${index + 1}`}
+                  value={answer.answer}
+                  onChange={(e) => handleAnswerChange(index, 'answer', e.target.value)}
+                  style={{ flex: 1 }}
+                />
+                <Switch
+                  checkedChildren={<CheckOutlined />}
+                  unCheckedChildren={<CloseOutlined />}
+                  checked={answer.correct}
+                  onChange={(checked) => handleAnswerChange(index, 'correct', checked)}
+                />
+                {answers.length > 2 && (
+                  <Button
+                    type="text"
+                    icon={<MinusCircleOutlined />}
+                    onClick={() => removeAnswer(index)}
+                    danger
+                  />
+                )}
+              </div>
+            ))}
+            
+            {answers.length < 6 && (
+              <Form.Item>
+                <Button
+                  type="dashed"
+                  onClick={addAnswer}
+                  icon={<PlusOutlined />}
+                  style={{ width: '100%' }}
+                >
+                  Add Option
+                </Button>
+              </Form.Item>
+            )}
+          </div>
+        )}
+      </Form>
+    </Modal>
+  );
 }
 
 export default AddQuestionModal;
