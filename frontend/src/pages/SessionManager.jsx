@@ -335,3 +335,183 @@ function SessionManager() {
       });
     }
     
+    // All questions tab
+    items.push({
+        key: 'all',
+        label: 'All Questions',
+        children: (
+          <List
+            itemLayout="horizontal"
+            dataSource={session.questions || []}
+            renderItem={(question, index) => (
+              <List.Item
+                actions={[
+                  index === session.position ? (
+                    <Tag color="processing">Current</Tag>
+                  ) : (
+                    index < session.position ? (
+                      <Tag color="default">Finished</Tag>
+                    ) : (
+                      <Tag color="warning">Upcoming</Tag>
+                    )
+                  )
+                ]}
+              >
+                <List.Item.Meta
+                  title={
+                    <Space>
+                      <Text strong>Question {index + 1}:</Text>
+                      <Text>{question.question}</Text>
+                      <Tag color={getQuestionTypeColor(question.type)}>
+                        {getQuestionTypeName(question.type)}
+                      </Tag>
+                    </Space>
+                  }
+                  description={
+                    <Space>
+                      <Text>Duration: {question.duration}Seconds</Text>
+                      <Text>Score: {question.points}Points</Text>
+                      <Text>Number of options: {question.answers ? question.answers.length : 0}</Text>
+                    </Space>
+                  }
+                />
+              </List.Item>
+            )}
+          />
+        )
+      });
+      
+      return items;
+    };
+  
+    if (loading && !session) {
+      return (
+        <Layout className="session-manager-layout">
+          <Content style={{ padding: '50px', textAlign: 'center' }}>
+            <Spin size="large" tip="Loading...">
+              <div style={{ padding: '50px' }}></div>
+            </Spin>
+          </Content>
+        </Layout>
+      );
+    }
+  
+    // Show results page
+    if (session && !session.active && results) {
+      return (
+        <Layout className="session-results-layout">
+          <Header className="session-header" style={{ background: '#1890ff', padding: '0 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="header-left" style={{ display: 'flex', alignItems: 'center' }}>
+              <Button 
+                type="link" 
+                icon={<ArrowLeftOutlined />}
+                onClick={() => navigate('/dashboard')}
+                style={{ color: '#fff', marginRight: '10px' }}
+              >
+                Back to Dashboard
+              </Button>
+              <Title level={3} style={{ margin: 0, color: '#fff' }}>
+                Game Results Analysis
+              </Title>
+            </div>
+            <div className="header-right" style={{ display: 'flex', alignItems: 'center' }}>
+              <Button 
+                type="link" 
+                icon={<ReloadOutlined />} 
+                onClick={refreshStatus}
+                style={{ color: '#fff', marginRight: '10px' }}
+              >
+                Refresh
+              </Button>
+              <Button 
+                type="link" 
+                icon={<LogoutOutlined />} 
+                onClick={handleLogout}
+                style={{ color: '#fff' }}
+              >
+                Log Out
+              </Button>
+            </div>
+          </Header>
+          
+          <Content className="session-content" style={{ padding: '24px', backgroundColor: '#f0f2f5', minHeight: 'calc(100vh - 64px)' }}>
+            <Card 
+              title={
+                <Space>
+                  <TrophyOutlined style={{ color: '#faad14', fontSize: '20px' }} />
+                  <Text strong style={{ fontSize: '18px' }}>
+                    {session.name || 'Game'} Statistics
+                  </Text>
+                </Space>
+              }
+              extra={
+                <Space>
+                  <Tag color="blue">Session ID: {sessionId}</Tag>
+                  <Tag color="purple">Total Questions: {session.questions?.length || 0}</Tag>
+                  <Tag color="orange">Players: {session.players?.length || 0}</Tag>
+                </Space>
+              }
+              style={{ marginBottom: '24px' }}
+            >
+              <Descriptions column={{ xs: 1, sm: 2, md: 3 }} bordered>
+                <Descriptions.Item label="Game ID">{gameId}</Descriptions.Item>
+                <Descriptions.Item label="End Time">
+                  {new Date().toLocaleString()}
+                </Descriptions.Item>
+                <Descriptions.Item label="Status">
+                  <Badge status="default" text="Ended" />
+                </Descriptions.Item>
+              </Descriptions>
+            </Card>
+            
+            <SessionResultsView
+              results={results}
+              questions={session.questions}
+            />
+          </Content>
+        </Layout>
+      );
+    }
+  
+    return (
+      <Layout className="session-manager-layout">
+        <Header className="session-header">
+          <div className="header-left">
+            <Button 
+              type="link" 
+              icon={<ArrowLeftOutlined />}
+              onClick={() => navigate('/dashboard')}
+            >
+              Back to Dashboard
+            </Button>
+            <Title level={4} style={{ margin: 0, color: '#fff' }}>Session Management</Title>
+          </div>
+          <div className="header-right">
+            <Button 
+              type="link" 
+              icon={<ReloadOutlined />} 
+              onClick={refreshStatus}
+            >
+              Refresh
+            </Button>
+            <Button 
+              type="link" 
+              icon={<LogoutOutlined />} 
+              onClick={handleLogout}
+            >
+              Log Out
+            </Button>
+          </div>
+        </Header>
+  
+        <Content className="session-content">
+          {error && (
+            <Alert
+              message="error"
+              description={error}
+              type="error"
+              showIcon
+              closable
+              style={{ marginBottom: 16 }}
+            />
+          )}
