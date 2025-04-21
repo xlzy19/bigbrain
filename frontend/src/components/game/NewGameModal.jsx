@@ -303,3 +303,107 @@ const NewGameModal = ({ onClose, onCreate }) => {
                         </>
                       )}
                     </Form.List>
+                    <Form.Item
+                      shouldUpdate={(prevValues, currentValues) => {
+                        return (
+                          prevValues.questions?.[field.name]?.answers !==
+                            currentValues.questions?.[field.name]?.answers ||
+                          prevValues.questions?.[field.name]?.type !==
+                            currentValues.questions?.[field.name]?.type
+                        );
+                      }}
+                    >
+                      {() => {
+                        const questionType = form.getFieldValue([
+                          "questions",
+                          field.name,
+                          "type",
+                        ]);
+                        const answers =
+                          form.getFieldValue([
+                            "questions",
+                            field.name,
+                            "answers",
+                          ]) || [];
+
+                        if (!answers || answers.length === 0) {
+                          return null;
+                        }
+
+                        return (
+                          <Form.Item
+                            {...field}
+                            label="Correct Answer(s)"
+                            name={[field.name, "correctAnswers"]}
+                            rules={[
+                              { required: true, message: "Please select correct answer(s)" },
+                            ]}
+                          >
+                            <Select
+                              mode={
+                                questionType === "MULTIPLE"
+                                  ? "multiple"
+                                  : undefined
+                              }
+                              placeholder="Select correct answer(s)"
+                              style={{ width: "100%" }}
+                            >
+                              {answers.map((answer, ansIndex) => (
+                                <Option
+                                  key={`option-${field.name}-${ansIndex}`}
+                                  value={ansIndex}
+                                >
+                                  {answer || `Option ${ansIndex + 1}`}
+                                </Option>
+                              ))}
+                            </Select>
+                          </Form.Item>
+                        );
+                      }}
+                    </Form.Item>
+
+                    {fields.length > 1 && (
+                      <Button
+                        type="link"
+                        danger
+                        onClick={() => remove(field.name)}
+                      >
+                        Remove this question
+                      </Button>
+                    )}
+                  </Space>
+                </div>
+              ))}
+
+              <Button
+                type="dashed"
+                onClick={() => add()}
+                block
+                icon={<PlusOutlined />}
+              >
+                Add New Question
+              </Button>
+            </>
+          )}
+        </Form.List>
+
+        <Form.Item style={{ marginTop: "24px" }}>
+          <Space>
+            <Button type="primary" htmlType="submit">
+              Create Game
+            </Button>
+            <Button onClick={onClose}>Cancel</Button>
+          </Space>
+        </Form.Item>
+
+        {!formValid && (
+          <div style={{ color: "red", marginTop: "10px" }}>
+            Please make sure all questions have selected correct answers.
+          </div>
+        )}
+      </Form>
+    </Modal>
+  );
+};
+
+export default NewGameModal;
