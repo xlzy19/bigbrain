@@ -193,6 +193,148 @@ function GameEdit() {
   const showDeleteConfirm = () => {
     setDeleteConfirmVisible(true);
   };
+
+  return (
+    <Layout className="game-edit-layout">
+      <PageHeader
+        className="game-edit-header"
+        title={<Title level={2}>Edit Game</Title>}
+        subTitle={game ? game.name : 'Loading...'}
+        onBack={() => navigate('/dashboard')}
+        extra={[
+          <Button 
+            key="delete" 
+            danger 
+            icon={<DeleteOutlined />} 
+            onClick={showDeleteConfirm}
+          >
+            Delete Game
+          </Button>,
+          <Button key="reload" icon={<ReloadOutlined />} onClick={fetchGame}>
+            Refresh
+          </Button>,
+          <Button key="logout" icon={<LogoutOutlined />} onClick={handleLogout}>
+            Logout
+          </Button>
+        ]}
+      />
+
+      <Content className="game-edit-content">
+        <Breadcrumb className="game-edit-breadcrumb">
+          <Breadcrumb.Item>
+            <Link to="/dashboard">Dashboard</Link>
+          </Breadcrumb.Item>
+          <Breadcrumb.Item>Edit Game</Breadcrumb.Item>
+        </Breadcrumb>
+
+        {loading ? (
+          <div className="loading-container">
+            <Spin size="large" tip="Loading..." />
+          </div>
+        ) : error ? (
+          <div className="error-container">
+            <Card>
+              <p className="error-message">{error}</p>
+              <Button type="primary" onClick={() => navigate('/dashboard')}>
+                Back to Dashboard
+              </Button>
+            </Card>
+          </div>
+        ) : (
+          <>
+            <Card className="game-info-card">
+              {editingMetadata ? (
+                <GameMetadataForm
+                  initialData={{
+                    name: game.name || '',
+                    thumbnail: game.thumbnail || '',
+                  }}
+                  onSubmit={handleUpdateMetadata}
+                  onCancel={() => setEditingMetadata(false)}
+                />
+              ) : (
+                <div className="game-info">
+                  <div className="game-info-header">
+                    <Title level={3}>{game.name}</Title>
+                    <Space>
+                      <Button 
+                        type="primary"
+                        icon={<EditOutlined />}
+                        onClick={() => setEditingMetadata(true)}
+                      >
+                        Edit Game Info
+                      </Button>
+                      <Button 
+                        type="danger"
+                        icon={<DeleteOutlined />}
+                        onClick={showDeleteConfirm}
+                      >
+                        Delete Game
+                      </Button>
+                    </Space>
+                  </div>
+
+                  {game.thumbnail && (
+                    <div className="game-thumbnail-container">
+                      <img 
+                        src={game.thumbnail} 
+                        alt={game.name} 
+                        className="game-thumbnail" 
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+            </Card>
+
+            <Divider />
+
+            <Card className="questions-card">
+              <div className="section-header">
+                <Title level={4}>Question List</Title>
+                <Button 
+                  type="primary" 
+                  icon={<PlusOutlined />}
+                  onClick={() => setShowAddQuestionModal(true)}
+                >
+                  Add Question
+                </Button>
+              </div>
+
+              <QuestionList 
+                questions={game.questions || []} 
+                gameId={gameId}
+                onDelete={handleDeleteQuestion}
+              />
+            </Card>
+          </>
+        )}
+      </Content>
+
+      {showAddQuestionModal && (
+        <AddQuestionModal 
+          onClose={() => setShowAddQuestionModal(false)}
+          onAdd={handleAddQuestion}
+        />
+      )}
+
+      {/* Delete game confirmation dialog */}
+      <Modal
+        title="Confirm Delete"
+        open={deleteConfirmVisible}
+        onOk={handleDeleteGame}
+        onCancel={() => setDeleteConfirmVisible(false)}
+        okText="Confirm Delete"
+        cancelText="Cancel"
+        okButtonProps={{ danger: true }}
+      >
+        <Space direction="vertical" style={{ width: '100%' }}>
+          <Text>Are you sure you want to delete the game <Text strong>{game?.name}</Text>?</Text>
+          <Text type="danger">This action is irreversible and all questions will be permanently deleted!</Text>
+        </Space>
+      </Modal>
+    </Layout>
+  );
 }
 
 export default GameEdit;
