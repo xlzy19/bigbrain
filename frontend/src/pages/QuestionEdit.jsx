@@ -316,3 +316,148 @@ function QuestionEdit() {
                     mediaType: 'none'
                   }}
                 >
+                  <Form.Item
+                name="type"
+                label="Question Type"
+                rules={[{ required: true, message: 'Please select a question type' }]}
+              >
+                <Select onChange={handleTypeChange}>
+                  <Option value="single">Single Choice</Option>
+                  <Option value="multiple">Multiple Choice</Option>
+                  <Option value="truefalse">True / False</Option>
+                </Select>
+              </Form.Item>
+              
+              <Form.Item
+                name="question"
+                label="Question Text"
+                rules={[{ required: true, message: 'Please enter the question text' }]}
+              >
+                <TextArea rows={3} placeholder="Enter your question here..." />
+              </Form.Item>
+              
+              <div style={{ display: 'flex', gap: '20px' }}>
+                <Form.Item
+                  name="duration"
+                  label="Time Limit (seconds)"
+                  rules={[{ required: true, message: 'Please set the time limit' }]}
+                  style={{ width: '50%' }}
+                >
+                  <InputNumber min={5} max={300} style={{ width: '100%' }} />
+                </Form.Item>
+                
+                <Form.Item
+                  name="points"
+                  label="Points"
+                  rules={[{ required: true, message: 'Please set the point value' }]}
+                  style={{ width: '50%' }}
+                >
+                  <InputNumber min={1} max={1000} style={{ width: '100%' }} />
+                </Form.Item>
+              </div>
+              
+              <Form.Item name="mediaType" label="Media">
+                <Radio.Group onChange={(e) => setMediaType(e.target.value)} value={mediaType}>
+                  <Radio value="none">No Media</Radio>
+                  <Radio value="url">Media URL</Radio>
+                </Radio.Group>
+              </Form.Item>
+              
+              {mediaType === 'url' && (
+                <Form.Item
+                  name="mediaUrl"
+                  label="Media URL"
+                >
+                  <Input 
+                    placeholder="Enter a media URL (YouTube video or image link）..." 
+                    value={mediaUrl}
+                    onChange={(e) => setMediaUrl(e.target.value)}
+                  />
+                </Form.Item>
+              )}
+              
+              <Divider>Answer Options</Divider>
+              
+              {questionType === 'truefalse' ? (
+                <div>
+                  {answers.map((answer, index) => (
+                    <div key={index} style={{ marginBottom: '10px', display: 'flex', alignItems: 'center' }}>
+                      <Text style={{ width: '100px' }}>{answer.answer}</Text>
+                      <Switch
+                        checkedChildren={<CheckOutlined />}
+                        unCheckedChildren={<CloseOutlined />}
+                        checked={answer.correct}
+                        onChange={(checked) => handleAnswerChange(index, 'correct', checked)}
+                      />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div>
+                  {answers.map((answer, index) => (
+                    <div key={index} style={{ marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <Input
+                        placeholder={`Option ${index + 1}`}
+                        value={answer.answer}
+                        onChange={(e) => handleAnswerChange(index, 'answer', e.target.value)}
+                        style={{ flex: 1 }}
+                      />
+                      <Switch
+                        checkedChildren={<CheckOutlined />}
+                        unCheckedChildren={<CloseOutlined />}
+                        checked={answer.correct}
+                        onChange={(checked) => handleAnswerChange(index, 'correct', checked)}
+                      />
+                      {answers.length > 2 && (
+                        <Button
+                          type="text"
+                          icon={<MinusCircleOutlined />}
+                          onClick={() => removeAnswer(index)}
+                          danger
+                        />
+                      )}
+                    </div>
+                  ))}
+                  
+                  {answers.length < 6 && (
+                    <Form.Item>
+                      <Button
+                        type="dashed"
+                        onClick={addAnswer}
+                        icon={<PlusOutlined />}
+                        style={{ width: '100%' }}
+                      >
+                        Add Option
+                      </Button>
+                    </Form.Item>
+                  )}
+                </div>
+              )}
+              
+              <Divider />
+              
+              <Form.Item style={{ marginTop: '24px', textAlign: 'right' }}>
+                <Button 
+                  onClick={() => navigate(`/game/${gameId}`)} 
+                  style={{ marginRight: '12px' }}
+                  icon={<CloseOutlined />}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="primary" 
+                  onClick={handleSubmit}
+                  icon={<SaveOutlined />}
+                >
+                  Save
+                </Button>
+              </Form.Item>
+            </Form>
+          </Card>
+        )}
+      </Content>
+    </Layout>
+  );
+}
+
+export default QuestionEdit;
