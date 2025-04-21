@@ -515,3 +515,118 @@ function SessionManager() {
               style={{ marginBottom: 16 }}
             />
           )}
+
+<Card className="session-info-card">
+          <Descriptions title="Session Information" bordered>
+            <Descriptions.Item label="Session ID">{sessionId}</Descriptions.Item>
+            <Descriptions.Item label="Game ID">{gameId}</Descriptions.Item>
+            <Descriptions.Item label="Status">
+              {session?.active ? (
+                <Badge status="processing" text="Active" />
+              ) : (
+                <Badge status="default" text="Ended" />
+              )}
+            </Descriptions.Item>
+            <Descriptions.Item label="Question Progress">
+              {session?.position + 1} / {session?.questions?.length || 0}
+            </Descriptions.Item>
+            <Descriptions.Item label="Number of Players" span={2}>
+              <Badge count={session?.players?.length || 0} showZero />
+            </Descriptions.Item>
+            <Descriptions.Item label="Player Link" span={3}>
+              <Space>
+                <Input
+                  value={getPlayLink()}
+                  readOnly
+                  style={{ width: '300px' }}
+                />
+                <Button 
+                  type="primary" 
+                  icon={<CopyOutlined />} 
+                  onClick={handleCopyLink}
+                >
+                  Copy Link
+                </Button>
+              </Space>
+            </Descriptions.Item>
+          </Descriptions>
+        </Card>
+
+        <Card className="player-list-card" title={<Space><UserOutlined /> Player List</Space>} style={{ marginTop: 16 }}>
+          {session?.players?.length === 0 ? (
+            <Empty description="No players have joined yet" />
+          ) : (
+            <List
+              bordered
+              dataSource={session?.players || []}
+              renderItem={(player, index) => (
+                <List.Item>
+                  <Text>{index + 1}. {player}</Text>
+                </List.Item>
+              )}
+            />
+          )}
+        </Card>
+
+        <Card className="question-card" title="Current Question Status" style={{ marginTop: 16 }}>
+          {session?.position >= 0 && session?.questions && session.questions.length > 0 ? (
+            <div>
+              <Tabs 
+                activeKey={activeQuestionTab} 
+                onChange={setActiveQuestionTab}
+                type="card"
+                items={getTabItems()}
+              />
+            </div>
+          ) : (
+            <div className="no-question">
+              <Alert
+                message="No Questions Available"
+                description="The game has not started or has already ended, and no question is currently in progress"
+                type="info"
+                showIcon
+              />
+            </div>
+          )}
+        </Card>
+
+        <div className="session-actions" style={{ marginTop: 16, display: 'flex', justifyContent: 'center' }}>
+          {session?.active && (
+            <Space size="large">
+              {hasNextQuestion && (
+                <Button
+                  type="primary"
+                  size="large"
+                  icon={<RightOutlined />}
+                  onClick={handleAdvance}
+                >
+                  Go to Next Question
+                </Button>
+              )}
+              
+              <Button
+                type="danger"
+                size="large"
+                onClick={handleEnd}
+              >
+                End Session
+              </Button>
+            </Space>
+          )}
+          
+          {!session?.active && (
+            <Button
+              type="primary"
+              size="large"
+              onClick={handleStart}
+            >
+              Start New Session
+            </Button>
+          )}
+        </div>
+      </Content>
+    </Layout>
+  );
+}
+
+export default SessionManager;
