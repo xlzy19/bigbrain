@@ -179,4 +179,140 @@ function QuestionEdit() {
       
       // Update the specific question in the question list
       updatedGame.questions[parseInt(questionId)] = updatedQuestion;
+          // Update the current game in the game list
+          const updatedGames = allGames.map(g => 
+            g.id === parseInt(gameId) ? updatedGame : g
+          );
+          
+          // Submit the update
+          await request.put('/admin/games', { games: updatedGames });
+          
+          message.success('Question updated successfully');
+          
+          // Go back to game edit page
+          navigate(`/game/${gameId}`);
+        } catch (error) {
+          message.error('Failed to update the question');
+          console.error(error);
+        }
+      };
     
+      const handleTypeChange = (value) => {
+        setQuestionType(value);
+        
+        // Reset answer options
+        if (value === 'truefalse') {
+          setAnswers([
+            { answer: 'true', correct: true },
+            { answer: 'false', correct: false }
+          ]);
+        } else if (value === 'single' && answers.filter(a => a.correct).length > 1) {
+          // If switching from multiple to single choice, keep only the first correct answer
+          const updatedAnswers = [...answers];
+          let foundCorrect = false;
+          updatedAnswers.forEach((answer, index) => {
+            if (answer.correct) {
+              if (!foundCorrect) {
+                foundCorrect = true;
+              } else {
+                updatedAnswers[index].correct = false;
+              }
+            }
+          });
+          setAnswers(updatedAnswers);
+        }
+      };
+    
+      const handleAnswerChange = (index, field, value) => {
+        const updatedAnswers = [...answers];
+        updatedAnswers[index][field] = value;
+        
+        // For single choice or true/false questions, ensure only one correct answer
+        if (field === 'correct' && value === true && (questionType === 'single' || questionType === 'truefalse')) {
+          updatedAnswers.forEach((answer, i) => {
+            if (i !== index) {
+              updatedAnswers[i].correct = false;
+            }
+          });
+        }
+        
+        setAnswers(updatedAnswers);
+      };
+    
+      const addAnswer = () => {
+        if (answers.length < 6) {
+          setAnswers([...answers, { answer: '', correct: false }]);
+        }
+      };
+    
+      const removeAnswer = (index) => {
+        if (answers.length > 2) {
+          const updatedAnswers = [...answers];
+          updatedAnswers.splice(index, 1);
+          setAnswers(updatedAnswers);
+        }
+      };
+    
+      const handleLogout = async () => {
+        try {
+          await logout();
+          navigate('/login');
+        } catch (error) {
+          message.error('Failed to log out');
+          console.error(error);
+        }
+      };
+    
+      return (
+        <Layout className="question-edit-layout">
+          <PageHeader
+            className="question-edit-header"
+            title={<Title level={2}>Edit Question</Title>}
+            subTitle={question ? `Question ${parseInt(questionId) + 1}` : 'Loading...'}
+            onBack={() => navigate(`/game/${gameId}`)}
+            extra={[
+              <Button key="reload" icon={<ReloadOutlined />} onClick={fetchGameAndQuestion}>
+                Refresh
+              </Button>,
+              <Button key="logout" icon={<LogoutOutlined />} onClick={handleLogout}>
+                Logout
+              </Button>
+            ]}
+          />
+          
+          <Content className="question-edit-content">
+            <Breadcrumb className="question-edit-breadcrumb">
+              <Breadcrumb.Item>
+                <Link to="/dashboard">Dashboard</Link>
+              </Breadcrumb.Item>
+              <Breadcrumb.Item>
+                <Link to={`/game/${gameId}`}>Edit Game</Link>
+              </Breadcrumb.Item>
+              <Breadcrumb.Item>Edit Question</Breadcrumb.Item>
+            </Breadcrumb>
+    
+            {loading ? (
+              <div className="loading-container">
+                <Spin size="large" tip="Loading..." />
+              </div>
+            ) : error ? (
+              <div className="error-container">
+                <Card>
+                  <p className="error-message">{error}</p>
+                  <Button type="primary" onClick={() => navigate(`/game/${gameId}`)}>
+                    Back to Game Editor
+                  </Button>
+                </Card>
+              </div>
+            ) : (
+              <Card className="question-form-card">
+                <Form
+                  form={form}
+                  layout="vertical"
+                  initialValues={{
+                    type: 'single',
+                    duration: 30,
+                    points: 100,
+                    mediaType: 'none'
+                  }}
+                >
