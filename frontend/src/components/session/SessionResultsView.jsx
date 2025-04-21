@@ -167,4 +167,94 @@ function SessionResultsView({ results, questions }) {
     // Sort players by score to generate leaderboard
     const rankedPlayers = [...playerScores].sort((a, b) => b.score - a.score);
     const topPlayers = rankedPlayers.slice(0, 10);
+
+    // Prepare leaderboard table columns
+  const leaderboardColumns = [
+    {
+      title: 'Rank',
+      dataIndex: 'rank',
+      key: 'rank',
+      width: 80,
+      render: (_, record, index) => {
+        if (index === 0) return <Tag color="gold" icon={<TrophyOutlined />}>1</Tag>;
+        if (index === 1) return <Tag color="silver">2</Tag>;
+        if (index === 2) return <Tag color="bronze">3</Tag>;
+        return <Tag>{index + 1}</Tag>;
+      }
+    },
+    {
+      title: 'Player',
+      dataIndex: 'name',
+      key: 'name',
+      render: (name) => (
+        <Space>
+          <Avatar icon={<UserOutlined />} />
+          <Text strong>{name}</Text>
+        </Space>
+      )
+    },
+    {
+      title: 'Score',
+      dataIndex: 'score',
+      key: 'score',
+      sorter: (a, b) => a.score - b.score,
+      render: (score, record) => (
+        <Space>
+          <Text strong>{score}</Text>
+          <Text type="secondary">/ {record.maxPossibleScore}</Text>
+        </Space>
+      )
+    },
+    {
+      title: 'Accuracy',
+      dataIndex: 'correctRate',
+      key: 'correctRate',
+      render: (rate) => (
+        <Space>
+          <Text>{Math.round(rate)}%</Text>
+          <div style={{ width: 50, height: 8, backgroundColor: '#f0f0f0', borderRadius: 4 }}>
+            <div 
+              style={{ 
+                width: `${rate}%`, 
+                height: '100%', 
+                backgroundColor: getColorByRate(rate),
+                borderRadius: 4
+              }} 
+            />
+          </div>
+        </Space>
+      )
+    },
+    {
+      title: 'Correct Answers',
+      dataIndex: 'correctCount',
+      key: 'correctCount',
+      render: (count) => (
+        <Space>
+          <CheckCircleOutlined style={{ color: '#52c41a' }} />
+          <Text>{count} / {questions.length}</Text>
+        </Space>
+      )
+    }
+  ];
+
+  // Accuracy distribution pie chart data
+  const correctRateDistribution = [
+    { name: '>=90%', value: correctRateData.filter(q => q.correctRate >= 90).length },
+    { name: '70-89%', value: correctRateData.filter(q => q.correctRate >= 70 && q.correctRate < 90).length },
+    { name: '50-69%', value: correctRateData.filter(q => q.correctRate >= 50 && q.correctRate < 70).length },
+    { name: '30-49%', value: correctRateData.filter(q => q.correctRate >= 30 && q.correctRate < 50).length },
+    { name: '<30%', value: correctRateData.filter(q => q.correctRate < 30).length }
+  ].filter(item => item.value > 0);
+
+  // Get color by accuracy rate
+  function getColorByRate(rate) {
+    if (rate >= 90) return '#52c41a';  // Green
+    if (rate >= 70) return '#1890ff';  // Blue
+    if (rate >= 50) return '#faad14';  // Yellow
+    if (rate >= 30) return '#fa8c16';  // Orange
+    return '#f5222d';  // Red
+  }
+
+  const tabItems = [ /* Overview, Questions, Players */ ];
 }
