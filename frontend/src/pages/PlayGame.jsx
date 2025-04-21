@@ -358,3 +358,185 @@ function PlayGame() {
     isFetchingAnswer,
     showAnswer
   ]);
+  useEffect(() => {
+    checkGameStatus();
+
+    return () => {
+      stopTimer();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (currentQuestion && !showAnswer && timeRemaining > 0) {
+      startTimer(timeRemaining);
+    } else {
+      stopTimer();
+
+      if (
+        timeRemaining <= 0 &&
+        !showAnswer &&
+        currentQuestion &&
+        !isFetchingAnswer
+      ) {
+        fetchCorrectAnswer();
+      }
+    }
+
+    return () => stopTimer();
+  }, [
+    currentQuestion,
+    showAnswer,
+    timeRemaining,
+    startTimer,
+    stopTimer,
+    fetchCorrectAnswer,
+    isFetchingAnswer,
+  ]);
+
+  const renderRefreshButton = () => (
+    <Button
+      type="primary"
+      icon={<ReloadOutlined />}
+      onClick={checkGameStatus}
+      style={{ marginBottom: 16 }}
+      loading={loading || questionLoading}
+    >
+      刷新
+    </Button>
+  );
+
+  if (loading) {
+    return (
+      <Layout className="play-game-layout">
+        <Content className="play-game-content">
+          <div className="loading-container">
+            <Spin size="large" tip="loading..." />
+          </div>
+        </Content>
+      </Layout>
+    );
+  }
+
+  if (!gameStarted) {
+    return (
+      <Layout className="play-game-layout">
+        <Content className="play-game-content">
+          <Result
+            icon={<QuestionCircleOutlined style={{ color: "#1890ff" }} />}
+            title="Waiting for the game to start"
+            subTitle="The host will start the game shortly. Please click the refresh button to check the status"
+            extra={renderRefreshButton()}
+          />
+        </Content>
+      </Layout>
+    );
+  }
+
+  if (!currentQuestion || questionLoading) {
+    return (
+      <Layout className="play-game-layout">
+        <Content className="play-game-content">
+          <Result
+            icon={<WarningOutlined style={{ color: "#faad14" }} />}
+            title="Waiting for the next question"
+            subTitle="The host will release the next question soon. Please click the refresh button to check the status"
+            extra={renderRefreshButton()}
+          />
+        </Content>
+      </Layout>
+    );
+  }
+
+  return (
+    <Layout className="play-game-layout">
+      <Header className="play-game-header">
+        <div className="header-content">
+          <div className="header-left">
+            <Title level={4} style={{ margin: 0, color: "#fff" }}>
+              问题 {questionNumber}
+            </Title>
+          </div>
+          <div className="header-right">
+            {timeRemaining > 0 && !showAnswer ? (
+              <div className="timer-container">
+                <ClockCircleOutlined />
+                <Text style={{ color: "#fff", marginLeft: 8 }}>
+                  {formatTime(timeRemaining)}
+                </Text>
+              </div>
+            ) : (
+              <Text style={{ color: "#fff" }}>
+                <TrophyOutlined /> Score: {score}
+              </Text>
+            )}
+          </div>
+        </div>
+      </Header>
+
+      <Content className="play-game-content">
+        {/* {error && (
+          <Alert
+            message="Error"
+            description={error}
+            type="error"
+            showIcon
+            style={{ marginBottom: 16 }}
+          />
+        )} */}
+
+        {showAnswer && renderRefreshButton()}
+
+        <Card className="question-card">
+          <Space direction="vertical" size="large" style={{ width: "100%" }}>
+            <div className="question-header">
+              <Title level={3}>{currentQuestion.text}</Title>
+              <Space>
+                <Tag color={getQuestionTypeColor(currentQuestion.type)}>
+                  {getQuestionTypeName(currentQuestion.type)}
+                </Tag>
+                <Tag color="gold">
+                  <TrophyOutlined /> {currentQuestion.points} points
+                </Tag>
+              </Space>
+            </div>
+
+            {currentQuestion.media && (
+              <div className="question-media">
+                {currentQuestion.media.includes("youtube") ||
+                currentQuestion.media.includes("youtu.be") ? (
+                    <iframe
+                      width="100%"
+                      height="315"
+                      src={currentQuestion.media}
+                      title="Question Media"
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    ></iframe>
+                  ) : (
+                    <img
+                      src={currentQuestion.media}
+                      alt="Question Media"
+                      style={{ maxWidth: "100%", maxHeight: "300px" }}
+                    />
+                  )}
+              </div>
+            )}
+
+            <div className="question-info">
+              {timeRemaining > 0 && !showAnswer ? (
+                <Progress
+                  percent={Math.round(
+                    (timeRemaining / currentQuestion.time) * 100
+                  )}
+                  status="active"
+                  showInfo={false}
+                  strokeColor={{
+                    "0%": "#108ee9",
+                    "100%": "#87d068",
+                  }}
+                />
+              ) : (
+                <Divider>Answer</Divider>
+              )}
+            </div>
