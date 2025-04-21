@@ -168,6 +168,7 @@ function PlayGame() {
     stopTimer,
     isFetchingAnswer,
   ]);
+
   const startTimer = useCallback(
     (initialTime) => {
       if (timerIntervalRef.current) {
@@ -358,6 +359,7 @@ function PlayGame() {
     isFetchingAnswer,
     showAnswer
   ]);
+
   useEffect(() => {
     checkGameStatus();
 
@@ -540,6 +542,7 @@ function PlayGame() {
                 <Divider>Answer</Divider>
               )}
             </div>
+
             <div className="answer-options">
               {currentQuestion.type === "single" ||
               currentQuestion.type === "truefalse" ? (
@@ -703,3 +706,45 @@ function PlayGame() {
                 style={{ textAlign: "center" }}
               />
             )}
+
+            {!showAnswer ? (
+              <Button
+                type="primary"
+                size="large"
+                onClick={handleSubmit}
+                style={{ width: "100%" }}
+                disabled={selectedAnswers.length === 0 || timeRemaining <= 0}
+              >
+                {timeRemaining <= 0 ? "Time's up" : "Submit Answer"}
+              </Button>
+            ) : (
+              <Button
+                type="primary"
+                size="large"
+                icon={<ReloadOutlined />}
+                onClick={checkGameStatus}
+                style={{ width: "100%", marginTop: 16 }}
+              >
+                Get Next Question
+              </Button>
+            )}
+
+            {timeRemaining <= 0 && !showAnswer && (
+              <Button
+                type="primary"
+                size="large"
+                icon={<ReloadOutlined />}
+                onClick={checkGameStatus}
+                style={{ width: "100%", marginTop: 16 }}
+              >
+                Refresh Game Status
+              </Button>
+            )}
+          </Space>
+        </Card>
+      </Content>
+    </Layout>
+  );
+}
+
+export default PlayGame;
