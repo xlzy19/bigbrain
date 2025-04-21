@@ -168,3 +168,193 @@ function PlayGame() {
     stopTimer,
     isFetchingAnswer,
   ]);
+  const startTimer = useCallback(
+    (initialTime) => {
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+        timerIntervalRef.current = null;
+      }
+
+      if (initialTime <= 0 || showAnswer) {
+        if (
+          initialTime <= 0 &&
+          !showAnswer &&
+          currentQuestion &&
+          !isFetchingAnswer
+        ) {
+          setTimeRemaining(0);
+        }
+        return;
+      }
+
+      setTimeRemaining(initialTime);
+
+      timerIntervalRef.current = setInterval(() => {
+        setTimeRemaining((prevTime) => {
+          const newTime = prevTime - 1;
+          if (newTime <= 0) {
+            clearInterval(timerIntervalRef.current);
+            timerIntervalRef.current = null;
+
+            if (!showAnswer && !isFetchingAnswer) {
+              setTimeRemaining(0);
+            }
+            return 0;
+          }
+          return newTime;
+        });
+      }, 1000);
+
+      return () => {
+        if (timerIntervalRef.current) {
+          clearInterval(timerIntervalRef.current);
+          timerIntervalRef.current = null;
+        }
+      };
+    },
+    [showAnswer, currentQuestion, isFetchingAnswer]
+  );
+
+
+  const submitAnswer = async (answers) => {
+    try {
+      await submitPlayerAnswer(playerId, answers);
+      message.success("Answer submitted successfully");
+    } catch (error) {
+      console.error("Failed to submit answer", error);
+    }
+  };
+
+  const handleAnswerSelect = (answerId) => {
+    if (showAnswer || timeRemaining <= 0) return;
+
+    if (
+      currentQuestion.type === "single" ||
+      currentQuestion.type === "truefalse"
+    ) {
+      setSelectedAnswers([answerId]);
+    } else if (currentQuestion.type === "multiple") {
+      const isSelected = selectedAnswers.includes(answerId);
+      const newSelectedAnswers = isSelected
+        ? selectedAnswers.filter((id) => id !== answerId)
+        : [...selectedAnswers, answerId];
+
+      setSelectedAnswers(newSelectedAnswers);
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (selectedAnswers.length === 0) return;
+    await submitAnswer(selectedAnswers);
+    fetchCorrectAnswer();
+  };
+
+  const checkGameStatus = useCallback(async () => {
+    setLoading(true);
+    try {
+      if (isFetchingAnswer) {
+        setLoading(false);
+        return;
+      }
+      
+      const statusData = await fetchGameStatus();
+      setGameStarted(statusData.started);
+      
+      if (statusData.started) {
+        setQuestionLoading(true);
+        try {
+          const questionData = await fetchQuestion();
+          
+          const questionObj = questionData.question || questionData;
+          console.log(questionObj);
+          if (currentQuestion && currentQuestion.id === questionObj.id) {
+            setQuestionLoading(false);
+            setLoading(false);
+            message.error("Waiting for host action");
+            
+            return;
+          }
+          
+          if (!currentQuestion || currentQuestion.id !== questionObj.id) {
+            setSelectedAnswers([]);
+            setShowAnswer(false);
+            setCorrectAnswers([]);
+            setQuestionNumber(prev => prev + 1);
+            
+            stopTimer();
+          }
+          
+          const formattedQuestion = {
+            ...questionObj,
+            id: questionObj.id || `q-${Date.now()}`,
+            type: questionObj.type || 'single',
+            text: questionObj.question || questionObj.content,
+            time: questionObj.duration || questionObj.timeLimit || 60,
+            points: questionObj.points || 100,
+            answers: (questionObj.answers || []).map((ans, index) => ({
+              id: ans.id || index,
+              text: ans.answer || ans.content,
+              correct: ans.correct
+            }))
+          };
+          
+          setCurrentQuestion(formattedQuestion);
+          
+          if (questionData.isoTimeLastQuestionStarted) {
+            const startTime = new Date(questionData.isoTimeLastQuestionStarted);
+            setQuestionStartTime(startTime);
+            
+            const currentTime = new Date();
+            const elapsedTime = (currentTime - startTime) / 1000;
+            const remainingTime = Math.max(0, formattedQuestion.time - elapsedTime);
+            
+            setTimeRemaining(remainingTime);
+            
+            if (remainingTime <= 0 && !showAnswer && !isFetchingAnswer) {
+              fetchCorrectAnswer();
+            } 
+          } else {
+            setTimeRemaining(formattedQuestion.time);
+          }
+        } catch (error) {
+          if (error.response?.status === 400) {
+            try {
+              const resultsData = await getPlayerResults(playerId);
+              setTotalScore(resultsData.totalScore || 0);
+              navigate(`/play/results/${playerId}`);
+            // eslint-disable-next-line no-unused-vars
+            } catch (resultError) {
+              setError('Failed to fetch game results');
+            }
+          } else {
+            setError('Failed to fetch question');
+          }
+        } finally {
+          setQuestionLoading(false);
+        }
+      } else {
+        // Game has ended, fetch the final score
+        try {
+          const resultsData = await getPlayerResults(playerId);
+          setTotalScore(resultsData.totalScore || 0);
+          navigate(`/play/results/${playerId}`);
+        // eslint-disable-next-line no-unused-vars
+        } catch (error) { 
+          setError('Failed to fetch game results');
+        }
+      }
+    // eslint-disable-next-line no-unused-vars
+    } catch (error) {
+      setError('Game has ended');
+    } finally {
+      setLoading(false);
+    }
+  }, [
+    playerId, 
+    navigate, 
+    currentQuestion, 
+    stopTimer, 
+    fetchCorrectAnswer,
+    isFetchingAnswer,
+    showAnswer
+  ]);
