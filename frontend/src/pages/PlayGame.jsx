@@ -540,3 +540,166 @@ function PlayGame() {
                 <Divider>Answer</Divider>
               )}
             </div>
+            <div className="answer-options">
+              {currentQuestion.type === "single" ||
+              currentQuestion.type === "truefalse" ? (
+                  <Radio.Group
+                    value={selectedAnswers[0]}
+                    onChange={(e) => handleAnswerSelect(e.target.value)}
+                    disabled={showAnswer || timeRemaining <= 0}
+                    style={{ width: "100%" }}
+                  >
+                    <Space direction="vertical" style={{ width: "100%" }}>
+                      {currentQuestion.answers.map((answer, index) => {
+                        const answerId = answer.id || index;
+                        const isSelected = selectedAnswers.includes(answerId);
+                        const isCorrect =
+                        showAnswer && correctAnswers.includes(answerId);
+
+                        return (
+                          <Radio
+                            key={answerId}
+                            value={answerId}
+                            style={{
+                              width: "100%",
+                              padding: "12px",
+                              border: "1px solid #d9d9d9",
+                              borderRadius: "4px",
+                              marginRight: 0,
+                              backgroundColor: isCorrect
+                                ? "#f6ffed"
+                                : showAnswer && isSelected && !isCorrect
+                                  ? "#fff1f0"
+                                  : "",
+                              borderColor: isCorrect
+                                ? "#b7eb8f"
+                                : showAnswer && isSelected && !isCorrect
+                                  ? "#ffa39e"
+                                  : "",
+                            }}
+                          >
+                            <Space>
+                              <span>{answer.text}</span>
+                              {showAnswer && isCorrect && (
+                                <CheckCircleOutlined
+                                  style={{ color: "#52c41a" }}
+                                />
+                              )}
+                              {showAnswer && isSelected && !isCorrect && (
+                                <CloseCircleOutlined
+                                  style={{ color: "#f5222d" }}
+                                />
+                              )}
+                            </Space>
+                          </Radio>
+                        );
+                      })}
+                    </Space>
+                  </Radio.Group>
+                ) : (
+                  <Checkbox.Group
+                    value={selectedAnswers}
+                    onChange={(values) => {
+                      if (!showAnswer && timeRemaining > 0) {
+                        setSelectedAnswers(values);
+                      }
+                    }}
+                    disabled={showAnswer || timeRemaining <= 0}
+                    style={{ width: "100%" }}
+                  >
+                    <Space direction="vertical" style={{ width: "100%" }}>
+                      {currentQuestion.answers.map((answer, index) => {
+                        const answerId = answer.id || index;
+                        const isSelected = selectedAnswers.includes(answerId);
+                        const isCorrect =
+                        showAnswer && correctAnswers.includes(answerId);
+
+                        return (
+                          <Checkbox
+                            key={answerId}
+                            value={answerId}
+                            style={{
+                              width: "100%",
+                              padding: "12px",
+                              border: "1px solid #d9d9d9",
+                              borderRadius: "4px",
+                              marginRight: 0,
+                              backgroundColor: isCorrect
+                                ? "#f6ffed"
+                                : showAnswer && isSelected && !isCorrect
+                                  ? "#fff1f0"
+                                  : "",
+                              borderColor: isCorrect
+                                ? "#b7eb8f"
+                                : showAnswer && isSelected && !isCorrect
+                                  ? "#ffa39e"
+                                  : "",
+                            }}
+                          >
+                            <Space>
+                              <span>{answer.text}</span>
+                              {showAnswer && isCorrect && (
+                                <CheckCircleOutlined
+                                  style={{ color: "#52c41a" }}
+                                />
+                              )}
+                              {showAnswer && isSelected && !isCorrect && (
+                                <CloseCircleOutlined
+                                  style={{ color: "#f5222d" }}
+                                />
+                              )}
+                            </Space>
+                          </Checkbox>
+                        );
+                      })}
+                    </Space>
+                  </Checkbox.Group>
+                )}
+            </div>
+
+            {showAnswer && (
+              <Alert
+                message={
+                  <div className="answer-result">
+                    <Title level={4} style={{ margin: 0 }}>
+                      {selectedAnswers.length > 0 &&
+                      correctAnswers.length > 0 &&
+                      selectedAnswers.every((id) =>
+                        correctAnswers.includes(id)
+                      ) &&
+                      correctAnswers.every((id) =>
+                        selectedAnswers.includes(id)
+                      ) ? (
+                          <span style={{ color: "#52c41a" }}>
+                            <CheckCircleOutlined /> You are right！
+                          </span>
+                        ) : (
+                          <span style={{ color: "#f5222d" }}>
+                            <CloseCircleOutlined /> You are wrong！
+                          </span>
+                        )}
+                    </Title>
+                    <Text>
+                      {selectedAnswers.length > 0 &&
+                      correctAnswers.length > 0 &&
+                      selectedAnswers.every((id) =>
+                        correctAnswers.includes(id)
+                      ) &&
+                      correctAnswers.every((id) => selectedAnswers.includes(id))
+                        ? `You earned ${currentQuestion.points} points!`
+                        : "No points awarded"}
+                    </Text>
+                  </div>
+                }
+                type={
+                  selectedAnswers.length > 0 &&
+                  correctAnswers.length > 0 &&
+                  selectedAnswers.every((id) => correctAnswers.includes(id)) &&
+                  correctAnswers.every((id) => selectedAnswers.includes(id))
+                    ? "success"
+                    : "error"
+                }
+                showIcon={false}
+                style={{ textAlign: "center" }}
+              />
+            )}
