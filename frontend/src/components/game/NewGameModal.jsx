@@ -160,3 +160,146 @@ const NewGameModal = ({ onClose, onCreate }) => {
       );
     }
   };
+  return (
+    <Modal
+      title="Create New Game"
+      open={true}
+      onCancel={onClose}
+      width={800}
+      footer={null}
+    >
+      <Form
+        form={form}
+        layout="vertical"
+        onFinish={handleSubmit}
+        onValuesChange={onValuesChange}
+        initialValues={{
+          questions: [
+            {
+              answers: ["", ""],
+            },
+          ],
+        }}
+      >
+        <Form.Item
+          name="name"
+          label="Game Name"
+          rules={[{ required: true, message: "Please enter the game name" }]}
+        >
+          <Input placeholder="Enter game name" />
+        </Form.Item>
+
+        <Form.List name="questions">
+          {(fields, { add, remove }) => (
+            <>
+              {fields.map((field, index) => (
+                <div
+                  key={field.key}
+                  style={{
+                    border: "1px dashed #d9d9d9",
+                    padding: "16px",
+                    marginBottom: "16px",
+                  }}
+                >
+                  <Space direction="vertical" style={{ width: "100%" }}>
+                    <Form.Item
+                      {...field}
+                      label="Question Type"
+                      name={[field.name, "type"]}
+                      rules={[{ required: true, message: "Please select question type" }]}
+                    >
+                      <Select
+                        onChange={(value) =>
+                          handleQuestionTypeChange(value, field.name)
+                        }
+                      >
+                        <Option value="SINGLE">Single Choice</Option>
+                        <Option value="MULTIPLE">Multiple Choice</Option>
+                        <Option value="JUDGMENT">True/False</Option>
+                      </Select>
+                    </Form.Item>
+
+                    <Form.Item
+                      {...field}
+                      label="Question Content"
+                      name={[field.name, "content"]}
+                      rules={[{ required: true, message: "Please enter question content" }]}
+                    >
+                      <Input.TextArea />
+                    </Form.Item>
+
+                    <Space>
+                      <Form.Item
+                        {...field}
+                        label="Time Limit (seconds)"
+                        name={[field.name, "timeLimit"]}
+                        rules={[{ required: true, message: "Please set time limit" }]}
+                      >
+                        <InputNumber min={1} />
+                      </Form.Item>
+
+                      <Form.Item
+                        {...field}
+                        label="Points"
+                        name={[field.name, "points"]}
+                        rules={[{ required: true, message: "Please set points" }]}
+                      >
+                        <InputNumber min={1} />
+                      </Form.Item>
+                    </Space>
+
+                    <Form.Item
+                      {...field}
+                      label="Media URL (optional)"
+                      name={[field.name, "mediaUrl"]}
+                      extra="Supports image URLs or YouTube video links"
+                    >
+                      <Input placeholder="Enter YouTube or image URL" />
+                    </Form.Item>
+
+                    <Form.List name={[field.name, "answers"]}>
+                      {(
+                        answerFields,
+                        { add: addAnswer, remove: removeAnswer }
+                      ) => (
+                        <>
+                          {answerFields.map((answerField, answerIndex) => (
+                            <Space
+                              key={`answer-${field.name}-${answerField.key}`}
+                              align="baseline"
+                            >
+                              <Form.Item
+                                {...answerField}
+                                validateTrigger={["onChange", "onBlur"]}
+                                rules={[
+                                  { required: true, message: "Please enter an answer" }
+                                ]}
+                              >
+                                <Input
+                                  placeholder={`Answer ${answerIndex + 1}`}
+                                />
+                              </Form.Item>
+                              {answerFields.length > 2 && (
+                                <MinusCircleOutlined
+                                  onClick={() => removeAnswer(answerField.name)}
+                                />
+                              )}
+                            </Space>
+                          ))}
+                          {answerFields.length < 6 &&
+                            form.getFieldValue([
+                              "questions",
+                              field.name,
+                              "type",
+                            ]) !== "JUDGMENT" && (
+                            <Button
+                              type="dashed"
+                              onClick={() => addAnswer()}
+                              icon={<PlusOutlined />}
+                            >
+                                Add Answer Option
+                            </Button>
+                          )}
+                        </>
+                      )}
+                    </Form.List>
