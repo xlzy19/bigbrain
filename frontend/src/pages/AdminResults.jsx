@@ -158,3 +158,120 @@ function AdminResults() {
           </div>
         </div>
       </div>
+      <div className="results-section">
+        <h2>Rankings</h2>
+        <div className="leaderboard">
+          <table>
+            <thead>
+              <tr>
+                <th>Ranking</th>
+                <th>Player</th>
+                <th>Total Score</th>
+                <th>Correct Answers</th>
+                <th>Average Time</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sortedPlayers.map((player, index) => (
+                <tr key={player.name} className={index < 3 ? `rank-${index + 1}` : ''}>
+                  <td>{index + 1}</td>
+                  <td>{player.name}</td>
+                  <td>{player.score}</td>
+                  <td>{player.correctCount}</td>
+                  <td>{player.averageTime.toFixed(1)} s</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div className="results-section">
+        <h2>Question Analysis</h2>
+        <div className="charts-container">
+          <div className="chart-wrapper">
+            <h3>Accuracy Distribution</h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={questionStats}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="questionNumber" label={{ value: 'Question Number', position: 'insideBottom', offset: -5 }} />
+                <YAxis label={{ value: 'Accuracy (%)', angle: -90, position: 'insideLeft' }} />
+                <Tooltip formatter={(value) => [`${value.toFixed(1)}%`, 'Accuracy']} />
+                <Legend />
+                <Bar dataKey="correctRate" name="Accuracy" fill="#8884d8">
+                  {questionStats.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.correctRate > 50 ? '#4CAF50' : '#ff4444'} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="chart-wrapper">
+            <h3>Average Response Time</h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={questionStats}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="questionNumber" label={{ value: 'Question Number', position: 'insideBottom', offset: -5 }} />
+                <YAxis label={{ value: 'Time (s)', angle: -90, position: 'insideLeft' }} />
+                <Tooltip formatter={(value) => [`${value.toFixed(1)} s`, 'Avg. Time']} />
+                <Legend />
+                <Line 
+                  type="monotone" 
+                  dataKey="averageTime" 
+                  name="Average Response Time" 
+                  stroke="#82ca9d" 
+                  strokeWidth={2}
+                  dot={{ r: 4 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+
+      <div className="results-section">
+        <h2>Detailed Analysis</h2>
+        <div className="detailed-analysis">
+          {questionStats.map((stat, index) => (
+            <div key={index} className="question-analysis-card">
+              <h3>Question {stat.questionNumber}</h3>
+              <div className="analysis-details">
+                <div className="analysis-item">
+                  <span className="label">Accuracy:</span>
+                  <span className={`value ${stat.correctRate >= 50 ? 'good' : 'poor'}`}>
+                    {stat.correctRate.toFixed(1)}%
+                  </span>
+                </div>
+                <div className="analysis-item">
+                  <span className="label">Avg. Time:</span>
+                  <span className="value">{stat.averageTime.toFixed(1)} s</span>
+                </div>
+                <div className="analysis-item">
+                  <span className="label">Difficulty:</span>
+                  <span className={`value ${stat.correctRate >= 70 ? 'easy' : stat.correctRate >= 30 ? 'medium' : 'hard'}`}>
+                    {stat.correctRate >= 70 ? 'Easy' : stat.correctRate >= 30 ? 'Medium' : 'Hard'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="export-section">
+        <button 
+          className="export-button"
+          onClick={() => {
+            // Function to export results as CSV or Excel file
+            // Implement export functionality here
+          }}
+        >
+          Export Detailed Data
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export default AdminResults;
