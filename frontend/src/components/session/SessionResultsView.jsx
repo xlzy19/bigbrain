@@ -256,24 +256,66 @@ function SessionResultsView({ results, questions }) {
     return '#f5222d';  // Red
   }
 
-  const tabItems = [ /* Overview, Questions, Players */ ];
+  const tabItems = [
+    {
+      key: 'overview',
+      label: 'Overview',
+      children: (
+        <>
+          <Row gutter={[16, 16]}>
+            <Col xs={24} sm={12} md={6}>
+              <Card>
+                <Statistic
+                  title="Players"
+                  value={totalPlayers}
+                  prefix={<TeamOutlined />}
+                />
+              </Card>
+            </Col>
+            <Col xs={24} sm={12} md={6}>
+              <Card>
+                <Statistic
+                  title="Questions"
+                  value={totalQuestions}
+                  prefix={<QuestionCircleOutlined />}
+                />
+              </Card>
+            </Col>
+            <Col xs={24} sm={12} md={6}>
+              <Card>
+                <Statistic
+                  title="Total Points"
+                  value={totalPoints}
+                  prefix={<TrophyOutlined />}
+                  suffix="pts"
+                />
+              </Card>
+            </Col>
+            <Col xs={24} sm={12} md={6}>
+              <Card>
+                <Statistic
+                  title="Average Score" 
+                  value={averageScore}
+                  prefix={<StarOutlined />}
+                  suffix="pts" />
+              </Card>
+            </Col>
+          </Row>
 
-  return (
-    <div className="session-results-view">
-      <Card>
-        <Title level={2} style={{ textAlign: 'center', margin: '16px 0' }}>
-          Game Results Overview
-        </Title>
+          <Divider orientation="left">Leaderboard Top 10</Divider>
 
-        <Tabs 
-          defaultActiveKey="overview" 
-          items={tabItems}
-          type="card"
-          style={{ marginTop: 16 }}
-        />
-      </Card>
-    </div>
-  );
+          <Card>
+            <Table 
+              dataSource={topPlayers} 
+              columns={leaderboardColumns} 
+              rowKey="name"
+              pagination={false}
+            />
+          </Card>
+        </>
+      )
+    },
+  ]
 }
 
 export default SessionResultsView;
