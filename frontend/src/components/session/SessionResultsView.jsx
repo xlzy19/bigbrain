@@ -315,6 +315,60 @@ function SessionResultsView({ results, questions }) {
         </>
       )
     },
+    {
+        key: 'players',
+        label: 'Player Analysis',
+        children: (
+          <>
+            <Card title="Score Distribution">
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={rankedPlayers}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip 
+                    formatter={(value) => [`${value} pts`, 'Score']}
+                  />
+                  <Legend />
+                  <Bar dataKey="score" name="Score" fill="#1890ff" />
+                </BarChart>
+              </ResponsiveContainer>
+            </Card>
+  
+            <Divider>Player Accuracy</Divider>
+  
+            <Card>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={rankedPlayers}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis domain={[0, 100]} />
+                  <Tooltip 
+                    formatter={(value) => [`${value}%`, 'Accuracy']}
+                  />
+                  <Legend />
+                  <Bar dataKey="correctRate" name="Accuracy" fill="#4ECB73">
+                    {rankedPlayers.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={getColorByRate(entry.correctRate)} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </Card>
+  
+            <Divider>Full Leaderboard</Divider>
+  
+            <Card>
+              <Table 
+                dataSource={rankedPlayers} 
+                columns={leaderboardColumns}
+                rowKey="name"
+                pagination={{ pageSize: 10 }}
+              />
+            </Card>
+          </>
+        )
+      }
   ]
 }
 
