@@ -370,6 +370,22 @@ function SessionResultsView({ results, questions }) {
         )
       }
   ]
+  return (
+    <div className="session-results-view">
+      <Card>
+        <Title level={2} style={{ textAlign: 'center', margin: '16px 0' }}>
+          Game Results Overview
+        </Title>
+
+        <Tabs 
+          defaultActiveKey="overview" 
+          items={tabItems}
+          type="card"
+          style={{ marginTop: 16 }}
+        />
+      </Card>
+    </div>
+  );
 }
 
 export default SessionResultsView;
