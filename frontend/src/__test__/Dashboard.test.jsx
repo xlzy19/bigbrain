@@ -197,3 +197,42 @@ describe('Dashboard component test', () => {
     const loadingPromise = new Promise(resolve => {
       resolvePromise = resolve;
     });
+
+    getAllGames.mockReturnValue(loadingPromise);
+    
+    render(
+      <BrowserRouter>
+        <Dashboard />
+      </BrowserRouter>
+    );
+    
+    // verify the loading indicator is displayed
+    expect(screen.getByText('loading...')).toBeInTheDocument();
+    
+    // resolve the Promise, end the loading state
+    await act(async () => {
+      resolvePromise(mockGames);
+      await loadingPromise;
+    });
+  });
+  
+  it('should reload the game list when the refresh button is clicked', async () => {
+    await act(async () => {
+      renderDashboard();
+    });
+    
+    // reset the mock count
+    getAllGames.mockClear();
+    
+    // find the refresh button
+    const refreshButton = screen.getByText('refresh');
+    
+    // click the refresh button
+    await act(async () => {
+      fireEvent.click(refreshButton);
+    });
+    
+    // verify the API is called again
+    expect(getAllGames).toHaveBeenCalledTimes(1);
+  });
+}); 
