@@ -199,7 +199,7 @@ describe('PlayGame component test', () => {
         id: 'q3',
         question: 'test countdown',
         type: 'single',
-        duration: 10, // 10秒
+        duration: 10, // 10 sec
         points: 50,
         answers: [
           { id: 'a1', answer: 'option A' },
@@ -218,7 +218,7 @@ describe('PlayGame component test', () => {
     
     // Simulate time passage
     await act(async () => {
-      vi.advanceTimersByTime(10 * 1000); // 前进10秒
+      vi.advanceTimersByTime(10 * 1000); // forward 10 sec
     });
     
     // Simulate the response of fetching the correct answer
