@@ -23,12 +23,10 @@ import {
 import { useAuth } from "../contexts/AuthContext";
 import {
   getAllGames,
-  createGame,
   endGameSession,
   deleteGame,
   startGameSession,
 } from "../services/gameApi";
-import request from "../utils/request";
 import GameCard from "../components/game/GameCard";
 import NewGameModal from "../components/game/NewGameModal";
 import SessionStartedModal from "../components/session/SessionStartedModal";
@@ -39,7 +37,7 @@ const { Title } = Typography;
 function Dashboard() {
   const [games, setGames] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [setError] = useState("");
   const [showNewGameModal, setShowNewGameModal] = useState(false);
   const [sessionId, setSessionId] = useState(null);
   const [gameId, setGameId] = useState(null);
@@ -96,10 +94,7 @@ function Dashboard() {
         updatedGames = [newGame];
       }
 
-      // Submit the merged game data via API
-      const response = await request.put("/admin/games", {
-        games: updatedGames,
-      });
+
       // Update local state if creation is successful
       setGames({ games: updatedGames });
       setShowNewGameModal(false);
