@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState} from "react";
 import {
   Modal,
   Form,
@@ -7,9 +7,6 @@ import {
   Select,
   Space,
   Button,
-  Upload,
-  Radio,
-  message,
 } from "antd";
 import { PlusOutlined, MinusCircleOutlined } from "@ant-design/icons";
 
@@ -71,10 +68,10 @@ const NewGameModal = ({ onClose, onCreate }) => {
       }
     });
 
-    // if (!isValid) {
-    //   setFormValid(false);
-    //   return;
-    // }
+    if (!isValid) {
+      setFormValid(false);
+      return;
+    }
 
     setFormValid(true);
 
@@ -160,6 +157,7 @@ const NewGameModal = ({ onClose, onCreate }) => {
       );
     }
   };
+
   return (
     <Modal
       title="Create New Game"
@@ -192,7 +190,7 @@ const NewGameModal = ({ onClose, onCreate }) => {
         <Form.List name="questions">
           {(fields, { add, remove }) => (
             <>
-              {fields.map((field, index) => (
+              {fields.map((field) => (
                 <div
                   key={field.key}
                   style={{
@@ -303,6 +301,7 @@ const NewGameModal = ({ onClose, onCreate }) => {
                         </>
                       )}
                     </Form.List>
+
                     <Form.Item
                       shouldUpdate={(prevValues, currentValues) => {
                         return (
