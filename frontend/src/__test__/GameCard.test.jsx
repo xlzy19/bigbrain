@@ -106,3 +106,108 @@ describe('GameCard component test', () => {
     // Verify that the "Review" button is present
     expect(screen.getByText("Review")).toBeInTheDocument();
   });
+
+  // Button click interaction test
+  it('should call onStartSession when the Start button is clicked', () => {
+    const game = {
+      id: 123,
+      name: "test game",
+      questions: [],
+      active: null,
+      oldSessions: []
+    };
+    
+    renderWithRouter(
+      <GameCard 
+        game={game} 
+        onStartSession={mockOnStartSession} 
+        onStopSession={mockOnStopSession} 
+      />
+    );
+    
+    // Click the Start button
+    fireEvent.click(screen.getByText("Start"));
+    
+    // Verify that onStartSession is called
+    expect(mockOnStartSession).toHaveBeenCalledWith(123);
+  });
+  
+  it('should call onStopSession when the Stop button is clicked', () => {
+    const game = {
+      id: 456,
+      name: "active game",
+      questions: [],
+      active: "session-123",
+      oldSessions: []
+    };
+    
+    renderWithRouter(
+      <GameCard 
+        game={game} 
+        onStartSession={mockOnStartSession} 
+        onStopSession={mockOnStopSession} 
+      />
+    );
+    
+    // Click the Stop button
+    fireEvent.click(screen.getByText("Stop"));
+    
+    // Verify that onStopSession is called
+    expect(mockOnStopSession).toHaveBeenCalledWith(456, "session-123");
+  });
+  
+  // Edge case: missing image
+  it('should display the default icon when there is no thumbnail', () => {
+    const game = {
+      id: 123,
+      name: "no thumbnail game",
+      thumbnail: null,
+      questions: [],
+      active: null,
+      oldSessions: []
+    };
+    
+    renderWithRouter(
+      <GameCard 
+        game={game} 
+        onStartSession={mockOnStartSession} 
+        onStopSession={mockOnStopSession} 
+      />
+    );
+    
+    // Check if the QuestionCircleOutlined icon is present
+    // since the icon is an SVG element, we cannot directly test its existence, we verify the div containing the icon exists
+    const cardCover = document.querySelector('.game-card-container .ant-card-cover');
+    expect(cardCover).toBeTruthy();
+    expect(cardCover.firstChild.tagName.toLowerCase()).toBe('div');
+  });
+  
+  // Test the Review button and the history modal
+  it('should display the history modal when the Review button is clicked', async () => {
+    const game = {
+      id: 789,
+      name: "history game",
+      questions: [],
+      active: null,
+      oldSessions: ["old-session-1", "old-session-2"]
+    };
+    
+    renderWithRouter(
+      <GameCard 
+        game={game} 
+        onStartSession={mockOnStartSession} 
+        onStopSession={mockOnStopSession} 
+      />
+    );
+    
+    // Click the Review button
+    fireEvent.click(screen.getByText("Review"));
+    
+    // Verify that the modal appears
+    expect(screen.getByText("Session History")).toBeInTheDocument();
+    
+    // Verify the session list items
+    expect(screen.getByText("Session old-session-1")).toBeInTheDocument();
+    expect(screen.getByText("Session old-session-2")).toBeInTheDocument();
+  });
+}); 
