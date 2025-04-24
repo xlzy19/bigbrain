@@ -403,7 +403,7 @@ function PlayGame() {
       style={{ marginBottom: 16 }}
       loading={loading || questionLoading}
     >
-      刷新
+      refresh
     </Button>
   );
 
@@ -455,7 +455,7 @@ function PlayGame() {
         <div className="header-content">
           <div className="header-left">
             <Title level={4} style={{ margin: 0, color: "#fff" }}>
-              问题 {questionNumber}
+              question {questionNumber}
             </Title>
           </div>
           <div className="header-right">
