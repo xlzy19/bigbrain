@@ -389,4 +389,185 @@ function PlayGame() {
       fetchCorrectAnswer,
       isFetchingAnswer
     ]);
-  
+  // Manually refresh the status
+  const refreshStatus = useCallback(() => {
+    checkGameStatus();
+  }, [checkGameStatus]);
+
+  // Create a safe polling function
+  const startPolling = useCallback(() => {
+    // If polling is already active, do not start a new one
+    if (pollingIntervalRef.current) {
+      return;
+    }
+    
+    // Perform an immediate status check
+    checkGameStatus();
+    
+    // Set a timer to check the status every 5 seconds
+    pollingIntervalRef.current = setInterval(() => {
+      checkGameStatus();
+    }, 5000);
+  }, [checkGameStatus]);
+
+  // Start polling on initialization and clean up on component unmount
+  useEffect(() => {
+    // Start polling on initialization
+    startPolling();
+    
+    // Clear polling and timer on component unmount
+    return () => {
+      stopPolling();
+      stopTimer();
+    };
+  }, [startPolling, stopPolling, stopTimer]);
+
+  // Determine whether to continue polling based on game and question status
+  useEffect(() => {
+    // If the answer has been shown, start polling to wait for the next question
+    if (showAnswer) {
+      startPolling();
+      return;
+    }
+    
+    // If the game hasn't started, continue polling until it begins
+    if (!gameStarted) {
+      startPolling();
+      return;
+    }
+    
+    // If there is no question or a question is still loading, continue polling until one is available
+    if (!currentQuestion || questionLoading) {
+      startPolling();
+      return;
+    }
+
+    // If a question is available but the answer hasn't been shown, stop polling
+    if (currentQuestion && !showAnswer) {
+      stopPolling();
+      return;
+    }
+  }, [
+    gameStarted, 
+    currentQuestion, 
+    questionLoading, 
+    showAnswer, 
+    startPolling, 
+    stopPolling
+  ]);
+
+  // Control the timer when the question or showAnswer state changes
+  useEffect(() => {
+    // Only start the timer if a question exists, the answer is not shown, and time remains
+    if (currentQuestion && !showAnswer && timeRemaining > 0) {
+      startTimer(timeRemaining);
+    } else {
+      // Stop the countdown
+      stopTimer();
+      
+      // If time has run out and the answer hasn't been shown, fetch the correct answer
+      if (timeRemaining <= 0 && !showAnswer && currentQuestion && !isFetchingAnswer) {
+        fetchCorrectAnswer();
+      }
+    }
+    
+    return () => stopTimer();
+  }, [
+    currentQuestion, 
+    showAnswer, 
+    timeRemaining, 
+    startTimer, 
+    stopTimer, 
+    fetchCorrectAnswer,
+    isFetchingAnswer
+  ]);
+
+  // Loading state
+  if (loading) {
+    return (
+      <Layout className="play-game-layout">
+        <Content className="play-game-content">
+          <div className="loading-container">
+            <Spin size="large" tip="Loading..." />
+          </div>
+        </Content>
+      </Layout>
+    );
+  }
+
+  // Game not started state
+  if (!gameStarted) {
+    return (
+      <Layout className="play-game-layout">
+        <Content className="play-game-content">
+          <Result
+            icon={<QuestionCircleOutlined style={{ color: '#1890ff' }} />}
+            title="Waiting for the game to start"
+            subTitle="The host will start the game shortly. Please wait..."
+            extra={
+              <Button type="primary" onClick={refreshStatus}>
+                Refresh status
+              </Button>
+            }
+          />
+        </Content>
+      </Layout>
+    );
+  }
+
+  // If there is no current question or the question is still loading
+  if (!currentQuestion || questionLoading) {
+    return (
+      <Layout className="play-game-layout">
+        <Content className="play-game-content">
+          <Result
+            icon={<WarningOutlined style={{ color: '#faad14' }} />}
+            title="Waiting for the next question"
+            subTitle="The host will release the next question shortly. Please wait..."
+            extra={
+              <Button type="primary" onClick={refreshStatus}>
+                Refresh status
+              </Button>
+            }
+          />
+        </Content>
+      </Layout>
+    );
+  }
+
+  return (
+    <Layout className="play-game-layout">
+      <Header className="play-game-header">
+        <div className="header-content">
+          <div className="header-left">
+            <Title level={4} style={{ margin: 0, color: '#fff' }}>
+              question {questionNumber}
+            </Title>
+          </div>
+          <div className="header-right">
+            {timeRemaining > 0 && !showAnswer ? (
+              <div className="timer-container">
+                <ClockCircleOutlined />
+                <Text style={{ color: '#fff', marginLeft: 8 }}>
+                  {formatTime(timeRemaining)}
+                </Text>
+              </div>
+            ) : (
+              <Text style={{ color: '#fff' }}>
+                <TrophyOutlined /> Score: {score}
+              </Text>
+            )}
+          </div>
+        </div>
+      </Header>
+      
+      <Content className="play-game-content">
+        {error && (
+          <Alert 
+            message="Error" 
+            description={error} 
+            type="error" 
+            showIcon 
+            style={{ marginBottom: 16 }} 
+          />
+        )}
