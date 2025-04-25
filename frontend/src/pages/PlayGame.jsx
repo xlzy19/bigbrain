@@ -42,7 +42,7 @@ function PlayGame() {
   const [currentQuestion, setCurrentQuestion] = useState(null);
   const [selectedAnswers, setSelectedAnswers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [ setError] = useState("");
+  const [error, setError] = useState("");
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [, setQuestionStartTime] = useState(null);
   const [showAnswer, setShowAnswer] = useState(false);
@@ -403,7 +403,7 @@ function PlayGame() {
       style={{ marginBottom: 16 }}
       loading={loading || questionLoading}
     >
-      refresh
+      Refresh
     </Button>
   );
 
@@ -455,7 +455,7 @@ function PlayGame() {
         <div className="header-content">
           <div className="header-left">
             <Title level={4} style={{ margin: 0, color: "#fff" }}>
-              question {questionNumber}
+              Question {questionNumber}
             </Title>
           </div>
           <div className="header-right">
@@ -476,7 +476,7 @@ function PlayGame() {
       </Header>
 
       <Content className="play-game-content">
-        {/*         {error && (
+        {error && (
           <Alert
             message="Error"
             description={error}
@@ -484,7 +484,7 @@ function PlayGame() {
             showIcon
             style={{ marginBottom: 16 }}
           />
-        )} */}
+        )}
 
         {showAnswer && renderRefreshButton()}
 
