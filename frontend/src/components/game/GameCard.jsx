@@ -21,6 +21,11 @@ function GameCard({ game, onStartSession, onStopSession }) {
   const [sessionResults, setSessionResults] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  // Calculate total duration
+
+
+  // Calculate number of questions
+
   // Handle viewing historical sessions
   const handleViewHistory = () => {
     setShowHistoryModal(true);
@@ -61,6 +66,7 @@ function GameCard({ game, onStartSession, onStopSession }) {
       </div>
     );
   };
+
   return (
     <>
       <Card
