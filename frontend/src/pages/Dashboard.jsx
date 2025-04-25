@@ -32,7 +32,7 @@ import request from "../utils/request";
 import GameCard from "../components/game/GameCard";
 import NewGameModal from "../components/game/NewGameModal";
 import SessionStartedModal from "../components/session/SessionStartedModal";
-
+console.log(createGame);
 const { Content } = Layout;
 const { Title } = Typography;
 
@@ -40,6 +40,7 @@ function Dashboard() {
   const [games, setGames] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  console.log(error);
   const [showNewGameModal, setShowNewGameModal] = useState(false);
   const [sessionId, setSessionId] = useState(null);
   const [gameId, setGameId] = useState(null);
@@ -100,7 +101,7 @@ function Dashboard() {
       const response = await request.put("/admin/games", {
         games: updatedGames,
       });
-
+      console.log(response);
       // Update local state if creation is successful
       setGames({ games: updatedGames });
       setShowNewGameModal(false);
