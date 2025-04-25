@@ -123,3 +123,81 @@ describe('LoginForm Component', () => {
       expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
     });
   });
+
+  // Test 5: Login Failure
+  it('should display error message on login failure', async () => {
+    renderWithRouter(<LoginForm />);
+    
+    // Fill in invalid credentials
+    const emailInput = screen.getByLabelText(/email/i);
+    const passwordInput = screen.getByLabelText(/password/i);
+    
+    fireEvent.change(emailInput, { target: { value: 'wrong@example.com' } });
+    fireEvent.change(passwordInput, { target: { value: 'wrongpassword' } });
+    
+    // Submit the form
+    const submitButton = screen.getByRole('button', { name: /login/i });
+    fireEvent.click(submitButton);
+    
+    // Verify login was called with provided credentials
+    expect(useAuth().login).toHaveBeenCalledWith('wrong@example.com', 'wrongpassword');
+    
+    // Check for error message
+    await waitFor(() => {
+      expect(screen.getByText(/invalid credentials/i)).toBeInTheDocument();
+    });
+  });
+  
+  // Test 6: Loading State
+  it('should display loading state during login process', async () => {
+    // Override the login mock to delay response
+    useAuth().login.mockImplementationOnce(() => {
+      return new Promise(resolve => {
+        setTimeout(() => resolve({ success: true }), 100);
+      });
+    });
+    
+    renderWithRouter(<LoginForm />);
+    
+    // Fill in valid credentials
+    const emailInput = screen.getByLabelText(/email/i);
+    const passwordInput = screen.getByLabelText(/password/i);
+    
+    fireEvent.change(emailInput, { target: { value: 'valid@example.com' } });
+    fireEvent.change(passwordInput, { target: { value: 'password123' } });
+    
+    // Submit the form
+    const submitButton = screen.getByRole('button', { name: /login/i });
+    fireEvent.click(submitButton);
+    
+    // Verify loading state
+    expect(submitButton).toHaveAttribute('disabled');
+    
+    // Wait for login to complete
+    await waitFor(() => {
+      expect(useAuth().login).toHaveBeenCalled();
+    });
+  });
+  
+  // Test 7: Navigation to Register
+  it('should navigate to register page when clicking register link', () => {
+    // Setup mock for navigation testing
+    const mockNavigate = vi.fn();
+    
+    render(
+      <MemoryRouter initialEntries={['/login']}>
+        <Routes>
+          <Route path="/login" element={<LoginForm navigate={mockNavigate} />} />
+          <Route path="/register" element={<div>Register Page</div>} />
+        </Routes>
+      </MemoryRouter>
+    );
+    
+    // Click the register link
+    const registerLink = screen.getByText(/register now/i);
+    fireEvent.click(registerLink);
+    
+    // Verify navigation
+    expect(mockNavigate).toHaveBeenCalledWith('/register');
+  });
+}); 
