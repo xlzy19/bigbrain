@@ -42,7 +42,7 @@ function PlayGame() {
   const [currentQuestion, setCurrentQuestion] = useState(null);
   const [selectedAnswers, setSelectedAnswers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [setError] = useState("");
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [, setQuestionStartTime] = useState(null);
   const [showAnswer, setShowAnswer] = useState(false);
@@ -476,15 +476,6 @@ function PlayGame() {
       </Header>
 
       <Content className="play-game-content">
-          {/* {error && (
-            <Alert
-              message="Error"
-              description={error}
-              type="error"
-              showIcon
-              style={{ marginBottom: 16 }}
-            />
-          )} */}
 
         {showAnswer && renderRefreshButton()}
 
