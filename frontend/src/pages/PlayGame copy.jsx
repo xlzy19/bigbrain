@@ -760,3 +760,22 @@ function PlayGame() {
                 style={{ textAlign: 'center' }}
               />
             )}
+            {!showAnswer && (
+              <Button
+                type="primary"
+                size="large"
+                onClick={handleTimerEnd}
+                style={{ width: '100%' }}
+                disabled={selectedAnswers.length === 0}
+              >
+                Submit answer
+              </Button>
+            )}
+          </Space>
+        </Card>
+      </Content>
+    </Layout>
+  );
+}
+
+export default PlayGame;
