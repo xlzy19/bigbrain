@@ -1,39 +1,39 @@
 // src/components/session/SessionResultsView.jsx
 import { 
-    BarChart, 
-    Bar, 
-    XAxis, 
-    YAxis, 
-    CartesianGrid, 
-    Tooltip, 
-    Legend, 
-    ResponsiveContainer,
-    PieChart,
-    Pie,
-    Cell,
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  Legend, 
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
 } from 'recharts';
 import { 
-    Card, 
-    Row, 
-    Col, 
-    Statistic, 
-    Table, 
-    Typography, 
-    Divider, 
-    Tag, 
-    Space, 
-    Avatar,
-    Tabs
+  Card, 
+  Row, 
+  Col, 
+  Statistic, 
+  Table, 
+  Typography, 
+  Divider, 
+  Tag, 
+  Space, 
+  Avatar,
+  Tabs
 } from 'antd';
 import {
-    TrophyOutlined,
-    CheckCircleOutlined,
-    QuestionCircleOutlined,
-    UserOutlined,
-    TeamOutlined,
-    StarOutlined
+  TrophyOutlined,
+  CheckCircleOutlined,
+  QuestionCircleOutlined,
+  UserOutlined,
+  TeamOutlined,
+  StarOutlined
 } from '@ant-design/icons';
-  
+
 const { Title, Text, Paragraph } = Typography;
 const COLORS = ['#1890FF', '#36CBCB', '#4ECB73', '#FBD437', '#F2637B', '#975FE4', '#36CBCB'];
 
@@ -241,6 +241,9 @@ function SessionResultsView({ results, questions }) {
     }
   ];
 
+  // Question statistics table
+
+
   // Accuracy distribution pie chart data
   const correctRateDistribution = [
     { name: '>=90%', value: correctRateData.filter(q => q.correctRate >= 90).length },
@@ -249,6 +252,10 @@ function SessionResultsView({ results, questions }) {
     { name: '30-49%', value: correctRateData.filter(q => q.correctRate >= 30 && q.correctRate < 50).length },
     { name: '<30%', value: correctRateData.filter(q => q.correctRate < 30).length }
   ].filter(item => item.value > 0);
+
+  // Get question type name
+
+  // Get color by question type
 
   // Get color by accuracy rate
   function getColorByRate(rate) {
