@@ -10,7 +10,6 @@ import PlayJoin from './pages/PlayJoin';
 import PlayGame from './pages/PlayGame';
 import PlayerResults from './pages/PlayerResults';
 import ProtectedRoute from './components/common/ProtectedRoute';
-import './index.css';
 function App() {
   return (
     <AuthProvider>
