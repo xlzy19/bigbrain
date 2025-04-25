@@ -189,206 +189,208 @@ function PlayGame() {
       clearInterval(timerIntervalRef.current);
       timerIntervalRef.current = null;
     }
+    
     // Do not start the timer if the initial time is less than or equal to 0 or the answer has already been shown
     if (initialTime <= 0 || showAnswer) {
-        // If time is up and the answer has not been shown yet, fetch the answer
-        if (initialTime <= 0 && !showAnswer && currentQuestion && !isFetchingAnswer) {
-          fetchCorrectAnswer();
+      // If time is up and the answer has not been shown yet, fetch the answer
+      if (initialTime <= 0 && !showAnswer && currentQuestion && !isFetchingAnswer) {
+        fetchCorrectAnswer();
+      }
+      return;
+    }
+    
+    setTimeRemaining(initialTime);
+    
+    // Create a new timer that decreases the time by 1 second every second
+    timerIntervalRef.current = setInterval(() => {
+      setTimeRemaining(prevTime => {
+        const newTime = prevTime - 1;
+        if (newTime <= 0) {
+          // Time's up: clear the timer and fetch the correct answer
+          clearInterval(timerIntervalRef.current);
+          timerIntervalRef.current = null;
+          
+          // Only fetch the answer if it hasn't been shown and no fetch is in progress
+          if (!showAnswer && !isFetchingAnswer) {
+            fetchCorrectAnswer();
+          }
+          return 0;
         }
+        return newTime;
+      });
+    }, 1000);
+    
+    return () => {
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+        timerIntervalRef.current = null;
+      }
+    };
+  }, [showAnswer, fetchCorrectAnswer, currentQuestion, isFetchingAnswer]);
+
+  // Handle countdown completion
+  const handleTimerEnd = useCallback(async () => {
+    // Execute only if the answer has not been shown
+    if (!showAnswer && !isFetchingAnswer) {
+      stopTimer();
+      await fetchCorrectAnswer();
+    }
+  }, [showAnswer, isFetchingAnswer, stopTimer, fetchCorrectAnswer]);
+
+  // Submit the answer
+  const submitAnswer = async (answers) => {
+    try {
+      await submitPlayerAnswer(playerId, answers);
+    } catch (error) {
+      console.error('Failed to submit answer', error);
+    }
+  };
+
+  // Handle answer selection
+  const handleAnswerSelect = (answerId) => {
+    if (showAnswer) return; // Do not allow selection if the answer has already been shown
+    
+    if (currentQuestion.type === 'single' || currentQuestion.type === 'truefalse') {
+      // For single choice or true/false questions, only one answer can be selected
+      setSelectedAnswers([answerId]);
+      submitAnswer([answerId]);
+    } else if (currentQuestion.type === 'multiple') {
+      // For multiple choice questions, multiple answers can be selected
+      const isSelected = selectedAnswers.includes(answerId);
+      const newSelectedAnswers = isSelected
+        ? selectedAnswers.filter(id => id !== answerId)
+        : [...selectedAnswers, answerId];
+      
+      setSelectedAnswers(newSelectedAnswers);
+      submitAnswer(newSelectedAnswers);
+    }
+  };
+
+  // Check game status - core function
+  const checkGameStatus = useCallback(async () => {
+    // Prevent duplicate requests: skip if the last request was made less than 2 seconds ago
+    
+    console.log("🚀 ~ checkGameStatus ~ questionLoading:", questionLoading);
+    console.log("🚀 ~ checkGameStatus ~ currentQuestion :", currentQuestion);
+    console.log("🚀 ~ checkGameStatus ~ showAnswer :", showAnswer);
+    const now = new Date();
+    // if (lastCheckedTime && now - lastCheckedTime < 2000) {
+    //   return;
+    // }
+    if (currentQuestion?.id ) {
+      if (lastCheckedTime && now - lastCheckedTime < 200000) {
+        return;
+      }
+    } else {
+      if (lastCheckedTime && now - lastCheckedTime < 2000) {
+        return;
+      }
+    }
+ 
+    
+    setLastCheckedTime(now);
+    
+    try {
+      // Skip status check if the answer is being fetched or has already been shown
+      if (isFetchingAnswer) {
         return;
       }
       
-      setTimeRemaining(initialTime);
+      const statusData = await fetchGameStatus();
+      setGameStarted(statusData.started);
       
-      // Create a new timer that decreases the time by 1 second every second
-      timerIntervalRef.current = setInterval(() => {
-        setTimeRemaining(prevTime => {
-          const newTime = prevTime - 1;
-          if (newTime <= 0) {
-            // Time's up: clear the timer and fetch the correct answer
-            clearInterval(timerIntervalRef.current);
-            timerIntervalRef.current = null;
+      // If the game has started, fetch the current question
+      if (statusData.started) {
+        setQuestionLoading(true);
+        try {
+          const questionData = await fetchQuestion();
+          
+          // Adapt to the API response format
+          const questionObj = questionData.question || questionData;
+          
+          // If the question has changed, reset the selected answers
+          if (!currentQuestion || currentQuestion.id !== questionObj.id) {
+            setSelectedAnswers([]);
+            setShowAnswer(false);
+            setCorrectAnswers([]);
+            setQuestionNumber(prev => prev + 1);
             
-            // Only fetch the answer if it hasn't been shown and no fetch is in progress
-            if (!showAnswer && !isFetchingAnswer) {
+            // Reset the timer
+            stopTimer();
+          }
+          
+          // Ensure we have a properly formatted question object
+          const formattedQuestion = {
+            ...questionObj,
+            id: questionObj.id || `q-${Date.now()}`,
+            type: questionObj.type || 'single',
+            text: questionObj.question || questionObj.content,
+            time: questionObj.duration || questionObj.timeLimit || 60,
+            points: questionObj.points || 100,
+            answers: (questionObj.answers || []).map((ans, index) => ({
+              id: ans.id || index,
+              text: ans.answer || ans.content,
+              correct: ans.correct
+            }))
+          };
+          
+          setCurrentQuestion(formattedQuestion);
+          
+          // Set the question start time and remaining time
+          if (questionData.isoTimeLastQuestionStarted) {
+            const startTime = new Date(questionData.isoTimeLastQuestionStarted);
+            setQuestionStartTime(startTime);
+            
+            const currentTime = new Date();
+            const elapsedTime = (currentTime - startTime) / 1000; // Convert to seconds
+            const remainingTime = Math.max(0, formattedQuestion.time - elapsedTime);
+            
+            setTimeRemaining(remainingTime);
+            
+            // Only handle the timer if the answer has not been shown
+            if (remainingTime <= 0 && !showAnswer && !isFetchingAnswer) {
               fetchCorrectAnswer();
-            }
-            return 0;
+            } 
+            // Do not call startTimer directly; let useEffect handle it
+          } else {
+            setTimeRemaining(formattedQuestion.time);
+            // Do not call startTimer directly; let useEffect handle it
           }
-          return newTime;
-        });
-      }, 1000);
-      
-      return () => {
-        if (timerIntervalRef.current) {
-          clearInterval(timerIntervalRef.current);
-          timerIntervalRef.current = null;
-        }
-      };
-    }, [showAnswer, fetchCorrectAnswer, currentQuestion, isFetchingAnswer]);
-  
-    // Handle countdown completion
-    const handleTimerEnd = useCallback(async () => {
-      // Execute only if the answer has not been shown
-      if (!showAnswer && !isFetchingAnswer) {
-        stopTimer();
-        await fetchCorrectAnswer();
-      }
-    }, [showAnswer, isFetchingAnswer, stopTimer, fetchCorrectAnswer]);
-  
-    // Submit the answer
-    const submitAnswer = async (answers) => {
-      try {
-        await submitPlayerAnswer(playerId, answers);
-      } catch (error) {
-        console.error('Failed to submit answer', error);
-      }
-    };
-  
-    // Handle answer selection
-    const handleAnswerSelect = (answerId) => {
-      if (showAnswer) return; // Do not allow selection if the answer has already been shown
-      
-      if (currentQuestion.type === 'single' || currentQuestion.type === 'truefalse') {
-        // For single choice or true/false questions, only one answer can be selected
-        setSelectedAnswers([answerId]);
-        submitAnswer([answerId]);
-      } else if (currentQuestion.type === 'multiple') {
-        // For multiple choice questions, multiple answers can be selected
-        const isSelected = selectedAnswers.includes(answerId);
-        const newSelectedAnswers = isSelected
-          ? selectedAnswers.filter(id => id !== answerId)
-          : [...selectedAnswers, answerId];
-        
-        setSelectedAnswers(newSelectedAnswers);
-        submitAnswer(newSelectedAnswers);
-      }
-    };
-  
-    // Check game status - core function
-    const checkGameStatus = useCallback(async () => {
-      // Prevent duplicate requests: skip if the last request was made less than 2 seconds ago
-      
-      console.log("🚀 ~ checkGameStatus ~ questionLoading:", questionLoading);
-      console.log("🚀 ~ checkGameStatus ~ currentQuestion :", currentQuestion);
-      console.log("🚀 ~ checkGameStatus ~ showAnswer :", showAnswer);
-      const now = new Date();
-      // if (lastCheckedTime && now - lastCheckedTime < 2000) {
-      //   return;
-      // }
-      if (currentQuestion?.id ) {
-        if (lastCheckedTime && now - lastCheckedTime < 200000) {
-          return;
-        }
-      } else {
-        if (lastCheckedTime && now - lastCheckedTime < 2000) {
-          return;
-        }
-      }
-   
-      
-      setLastCheckedTime(now);
-      
-      try {
-        // Skip status check if the answer is being fetched or has already been shown
-        if (isFetchingAnswer) {
-          return;
-        }
-        
-        const statusData = await fetchGameStatus();
-        setGameStarted(statusData.started);
-        
-        // If the game has started, fetch the current question
-        if (statusData.started) {
-          setQuestionLoading(true);
-          try {
-            const questionData = await fetchQuestion();
-            
-            // Adapt to the API response format
-            const questionObj = questionData.question || questionData;
-            
-            // If the question has changed, reset the selected answers
-            if (!currentQuestion || currentQuestion.id !== questionObj.id) {
-              setSelectedAnswers([]);
-              setShowAnswer(false);
-              setCorrectAnswers([]);
-              setQuestionNumber(prev => prev + 1);
-              
-              // Reset the timer
-              stopTimer();
+        } catch (error) {
+          // If fetching the question fails, the game may have ended
+          if (error.response?.status === 400) {
+            try {
+              const resultsData = await getPlayerResults(playerId);
+              setTotalScore(resultsData.totalScore || 0);
+              navigate(`/play/results/${playerId}`);
+            // eslint-disable-next-line no-unused-vars
+            } catch (resultError) {
+              setError('Failed to fetch game results');
             }
-            
-            // Ensure we have a properly formatted question object
-            const formattedQuestion = {
-              ...questionObj,
-              id: questionObj.id || `q-${Date.now()}`,
-              type: questionObj.type || 'single',
-              text: questionObj.question || questionObj.content,
-              time: questionObj.duration || questionObj.timeLimit || 60,
-              points: questionObj.points || 100,
-              answers: (questionObj.answers || []).map((ans, index) => ({
-                id: ans.id || index,
-                text: ans.answer || ans.content,
-                correct: ans.correct
-              }))
-            };
-            
-            setCurrentQuestion(formattedQuestion);
-            
-            // Set the question start time and remaining time
-            if (questionData.isoTimeLastQuestionStarted) {
-              const startTime = new Date(questionData.isoTimeLastQuestionStarted);
-              setQuestionStartTime(startTime);
-              
-              const currentTime = new Date();
-              const elapsedTime = (currentTime - startTime) / 1000; // Convert to seconds
-              const remainingTime = Math.max(0, formattedQuestion.time - elapsedTime);
-              
-              setTimeRemaining(remainingTime);
-              
-              // Only handle the timer if the answer has not been shown
-              if (remainingTime <= 0 && !showAnswer && !isFetchingAnswer) {
-                fetchCorrectAnswer();
-              } 
-              // Do not call startTimer directly; let useEffect handle it
-            } else {
-              setTimeRemaining(formattedQuestion.time);
-              // Do not call startTimer directly; let useEffect handle it
-            }
-          } catch (error) {
-            // If fetching the question fails, the game may have ended
-            if (error.response?.status === 400) {
-              try {
-                const resultsData = await getPlayerResults(playerId);
-                setTotalScore(resultsData.totalScore || 0);
-                navigate(`/play/results/${playerId}`);
-              // eslint-disable-next-line no-unused-vars
-              } catch (resultError) {
-                setError('Failed to fetch game results');
-              }
-            } else {
-              setError('Failed to fetch question');
-            }
-          } finally {
-            setQuestionLoading(false);
+          } else {
+            setError('Failed to fetch question');
           }
+        } finally {
+          setQuestionLoading(false);
         }
-      // eslint-disable-next-line no-unused-vars
-      } catch (error) {
-        setError('Failed to check game status');
-      } finally {
-        setLoading(false);
       }
-    }, [
-      playerId, 
-      navigate, 
-      lastCheckedTime, 
-      currentQuestion, 
-      showAnswer, 
-      stopTimer, 
-      fetchCorrectAnswer,
-      isFetchingAnswer
-    ]);
+    // eslint-disable-next-line no-unused-vars
+    } catch (error) {
+      setError('Failed to check game status');
+    } finally {
+      setLoading(false);
+    }
+  }, [
+    playerId, 
+    navigate, 
+    lastCheckedTime, 
+    currentQuestion, 
+    showAnswer, 
+    stopTimer, 
+    fetchCorrectAnswer,
+    isFetchingAnswer
+  ]);
+
   // Manually refresh the status
   const refreshStatus = useCallback(() => {
     checkGameStatus();
@@ -571,6 +573,7 @@ function PlayGame() {
             style={{ marginBottom: 16 }} 
           />
         )}
+        
         <Card className="question-card">
           <Space direction="vertical" size="large" style={{ width: '100%' }}>
             <div className="question-header">
@@ -760,6 +763,7 @@ function PlayGame() {
                 style={{ textAlign: 'center' }}
               />
             )}
+            
             {!showAnswer && (
               <Button
                 type="primary"
