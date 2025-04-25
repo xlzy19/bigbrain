@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import  { useState } from "react";
 import {
   Modal,
   Form,
@@ -7,9 +7,6 @@ import {
   Select,
   Space,
   Button,
-  Upload,
-  Radio,
-  message,
 } from "antd";
 import { PlusOutlined, MinusCircleOutlined } from "@ant-design/icons";
 
@@ -62,13 +59,10 @@ const NewGameModal = ({ onClose, onCreate }) => {
     console.log("Submitted values:", values);
 
     const questions = values.questions || [];
-    let isValid = true;
 
     questions.forEach((question, index) => {
       console.log(`Correct answers for question ${index + 1}:`, question.correctAnswers);
-      if (!question.correctAnswers) {
-        isValid = false;
-      }
+  
     });
 
     // if (!isValid) {
@@ -193,7 +187,7 @@ const NewGameModal = ({ onClose, onCreate }) => {
         <Form.List name="questions">
           {(fields, { add, remove }) => (
             <>
-              {fields.map((field, index) => (
+              {fields.map((field) => (
                 <div
                   key={field.key}
                   style={{
