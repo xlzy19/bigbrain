@@ -476,15 +476,6 @@ function PlayGame() {
       </Header>
 
       <Content className="play-game-content">
-        {error && (
-          <Alert
-            message="Error"
-            description={error}
-            type="error"
-            showIcon
-            style={{ marginBottom: 16 }}
-          />
-        )}
 
         {showAnswer && renderRefreshButton()}
 
